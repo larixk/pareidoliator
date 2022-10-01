@@ -101,7 +101,7 @@ function App() {
   );
 
   const update = useCallback((delta: number) => {
-    delta *= Math.sin(performance.now() / (60000 / 50)) + 1;
+    delta *= (Math.sin(performance.now() / (60000 / 20)) + 1.05) * 0.8;
     setNodes((nodes) => {
       const speed = 0.00004;
       const decay = 0.00004;
@@ -124,16 +124,16 @@ function App() {
     const [x, y] = [Math.random(), Math.random()]; //mousePosition ?? [0.25, 0.25];
     const direction = Math.sin(performance.now() / 10) * Math.PI * 2;
     const color =
-      Math.random() < 0.8
+      Math.random() < 0.2
         ? getCurrentColor()
-        : Math.random() < 0.5
+        : Math.random() < 0.05
         ? "rgba(255, 255, 255, 1)"
         : "rgba(0, 0, 0, 1)";
 
     addNodeAt(x, y, direction, color);
     if (Math.random() < 1) {
       addNodeAt(1 - x, y, -direction - Math.PI, color);
-      if (Math.random() < 0.8) {
+      if (Math.random() < 0.5) {
         addNodeAt(x, 1 - y, -direction, color);
         addNodeAt(1 - x, 1 - y, direction - Math.PI, color);
       }
@@ -173,20 +173,43 @@ function App() {
             />
             <feComposite in="SourceGraphic" in2="goo" operator="atop" />
           </filter>
+          <filter id="blur">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2" />
+          </filter>
         </defs>
-        {nodes.map((node, i) => (
-          <circle
-            key={i}
-            cx={node.x * 100 + "%"}
-            cy={node.y * 100 + "%"}
-            r={
-              (node.size < 0.05 ? node.size : 0.05 - (node.size - 0.05)) * 100 +
-              "%"
-            }
-            fill={node.color}
-            style={{ opacity: Math.min(1, 1000 / node.size) }}
-          />
-        ))}
+        <mask id="mask">
+          <g filter={"url(#blur)"}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <circle
+                key={i}
+                cx={"50%"}
+                cy={Math.sin((performance.now() * i) / 5000) * 50 + 50 + "%"}
+                r={(i + 1) * (50 / 4) + "%"}
+                fill={"white"}
+              />
+            ))}
+          </g>
+        </mask>
+        <g mask="url(#mask)">
+          {nodes.map((node, i) => {
+            const size =
+              node.size < 0.05 ? node.size : 0.05 - (node.size - 0.05);
+            return (
+              <circle
+                key={i}
+                cx={node.x * 100 + "%"}
+                cy={node.y * 100 + "%"}
+                // x={(node.x - size / 2) * 100 + "%"}
+                // y={(node.y - size / 2) * 100 + "%"}
+                // width={size * 100 + "%"}
+                // height={size * 100 + "%"}
+                r={size * 80 + "%"}
+                fill={node.color}
+                // style={{ opacity: Math.min(1, 1000 / node.size) }}
+              />
+            );
+          })}
+        </g>
       </svg>
     </div>
   );
