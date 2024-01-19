@@ -11,18 +11,6 @@ type Node = {
   direction: number;
 };
 
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-
-const mapRange = (
-  value: number,
-  min1: number,
-  max1: number,
-  min2: number,
-  max2: number
-) => {
-  return min2 + ((value - min1) * (max2 - min2)) / (max1 - min1);
-};
-
 const useAnimationFrame = (callback: (delta: number) => void) => {
   useEffect(() => {
     let lastTime = performance.now();
@@ -41,27 +29,6 @@ const useAnimationFrame = (callback: (delta: number) => void) => {
   }, [callback]);
 };
 
-const useLoadImageData = (src: string) => {
-  const [imageData, setImageData] = useState<ImageData | null>(null);
-
-  useEffect(() => {
-    const img = new Image();
-    img.src = src;
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.drawImage(img, 0, 0);
-        setImageData(ctx.getImageData(0, 0, img.width, img.height));
-      }
-    };
-  }, [src]);
-
-  return imageData;
-};
-
 const getCurrentColor = () => {
   const r = Math.sin(performance.now() / 1000) * 0.5 + 0.5;
   const g = Math.sin(performance.now() / 10000) * 0.5 + 0.5;
@@ -72,21 +39,8 @@ const getCurrentColor = () => {
 function App() {
   const [nodes, setNodes] = useState<Node[]>([]);
 
-  // const imageData = useLoadImageData("test.png");
-
   const addNodeAt = useCallback(
     (x: number, y: number, direction: number, color: string) => {
-      // const { data, width, height } = imageData ?? {};
-      // const getColorFor = (x: number, y: number) => {
-      //   return getCurrentColor();
-
-      //   // if (data && width && height) {
-      //   //   const index = Math.floor(y * width * height + x * width) * 4;
-      //   //   return `rgb(${data[index]}, ${data[index + 1]}, ${data[index + 2]})`;
-      //   // }
-      //   // return "black";
-      // };
-
       const newNode = {
         x,
         y,
@@ -115,10 +69,6 @@ function App() {
         .filter((node) => node.size < 100 && node.size > 0);
     });
   }, []);
-
-  const [mousePosition, setMousePosition] = useState<[number, number] | null>(
-    null
-  );
 
   useAnimationFrame(() => {
     const [x, y] = [Math.random(), Math.random()]; //mousePosition ?? [0.25, 0.25];
@@ -149,12 +99,6 @@ function App() {
         height="100vh"
         style={{
           display: "block",
-        }}
-        onMouseMove={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          const x = (e.clientX - rect.left) / rect.width;
-          const y = (e.clientY - rect.top) / rect.height;
-          setMousePosition([x, y]);
         }}
         filter="url(#goo)"
       >
@@ -199,13 +143,8 @@ function App() {
                 key={i}
                 cx={node.x * 100 + "%"}
                 cy={node.y * 100 + "%"}
-                // x={(node.x - size / 2) * 100 + "%"}
-                // y={(node.y - size / 2) * 100 + "%"}
-                // width={size * 100 + "%"}
-                // height={size * 100 + "%"}
                 r={size * 80 + "%"}
                 fill={node.color}
-                // style={{ opacity: Math.min(1, 1000 / node.size) }}
               />
             );
           })}
